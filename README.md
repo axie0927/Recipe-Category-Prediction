@@ -2,7 +2,7 @@
 
 **Name(s)**: Ammie Xie
 
-**Website Link**: https://axie0927.github.io/recipe-category-prediction/
+Link to my previous recipe research project can be found [here](https://axie0927.github.io/Recipe-Research-Project/)
 
 ### Framing the Problem
 
@@ -51,33 +51,29 @@ A grid search was used to find the optimized hyperparameter to allow us to have 
 
 The accuracy obtained from the final model on the training data is 0.9994093635564189 and the accuracy obtained from the final model on the testing data is 0.9120425101461286. These results are significantly better than our baseline model where we had the accuracy of 76% which is relatively good by itself but with our final model, we now have an accuracy of 90%+ for both training and test data which is remarkably better than our previous accuracy and exactly what we have aimed to achieve. With a 90% accuracy, this means that 90% of the data is predicted correctly while only 10% is predicted incorrectly. 
 
-Below is a dataframe of how the grid search was conducted. I tested the value in max_depth from 1 to 50 (inclusive).
-
-
-
-Additionally, I have provided a confusion matrix to show a visualization of the performance of the final model. 
+I have provided a confusion matrix to show a visualization of the performance of the final model. 
 
 ![confusion matrix](confusion_matrix.png)
 
 ### Fairness Analysis
 
-Indeed, the final model has a high accuracy when predicting the overall time category for a recipe. However, it is important to note that a majority of recipes are labeled as `short` since we used the '60-minutes-or-less' tag to determine the category of the recipe. Thus, recipes that took 60 minutes or less were categorized as 'short' while recipes that took longer were categorized as 'long'. This caused an uneven split since there were significantly more recipes that were categorized as 'short' compared to 'long'. This would imply that our model does better predicting 'short' recipes since we have more data to work with and thus, we would like to test whether the final model does better at classifying recipes that are considered 'short' as opposed to recipes that are considered 'long'. 
+Indeed, the final model has a high accuracy when predicting the overall time category for a recipe. However, it is important to note that a majority of recipes are labeled as 'short' since we used the '60-minutes-or-less' tag to determine the category of the recipe. Thus, recipes that took 60 minutes or less were categorized as 'short' while recipes that took longer were categorized as 'long'. This caused an uneven split since there were significantly more recipes that were categorized as 'short' compared to 'long'. Additionally, we would like to investigate the number of steps actually causes our model to perform differently. Thus we draw a distribution of 'n_steps' from the original dataframe, taking the median number of steps (=9) as a threshold to split our data into two groups. 
 
-In order to investigate this, a permutation test will be conducted where the recipes that are categorized as 'short' will be shuffled as group A, while recipes that are categorized as 'long' are shuffled as group B. 
-
-
-Group A: Recipes categorized 'short'
-
-Group B: Recipes categorized 'long'
+In order to investigate this, a permutation test will be conducted where the recipes that are under or equal to 9 steps will be shuffled as group A, while recipes that are more than 9 steps are shuffled as group B. 
 
 
-The evaluation metric I will be using for this test is the recall which will be calculated using (TP / (TP + FN)) or (TN / (TN + FP)). This is because we want to see how whether 'short' is correctly classified more often than 'long'.
+Group A: Recipes that have less than or equal to 9 steps
+
+Group B: Recipes that have more than 9 steps
 
 
-Null Hypothesis (H0): Our model is fair, its recall when classifying the time category of recipes are roughly the game for both group A and group B, and any differences are likely due to chance.
+The evaluation metric I will be using for this test is the precision which will be calculated using (TP / (TP + FP)) or (TN / (TN + FN)).
 
-Alternative Hypothesis (H1): Our model is not fair, its recall when classifying the time category of recipes is higher for recipes in group A when compared to group B.
+
+Null Hypothesis (H0): Our model is fair, its precision when classifying the time category of recipes are roughly the game for both group A and group B, and any differences are likely due to chance.
+
+Alternative Hypothesis (H1): Our model is not fair, its precision when classifying the time category of recipes is higher for recipes in group A when compared to group B.
 
 Significance Level: The significance level I set for this permutation test is 0.05.
 
-After conducting a permutation test 100 times, we obtain the p-value of 1.0 which is greater than our significance level of 0.05. This suggests that we fail to reject our null hypothesis and accept that our model is fair. This goes against my initial suspicion that my model classifiers 'short' with higher recall than 'long'. This result may suggest that our model is fair and its recall when classifying the time category of recipes are roughly the game for both group A and group B, and any differences are likely due to chance. However it is impossible to make a 100% conclusive decision and the result we obtained only suggests that our model is fair.
+After conducting a permutation test 100 times, we obtain the p-value of 0.0 which is smaller than our significance level of 0.05. This suggests that we reject our null hypothesis and accept that our model is not fair. This makes sense as we previously did not take into consideration the number of steps in a recipe when deciding on categorizing our time category column. Thus there provides us statistical evidence that supports our alternative hypothesis that our model is unfair and biased when classifying the time category for recipes with less than or equal to 9 steps as opposed to recipes with more than 9 steps. However it is impossible to make a 100% conclusive decision and the result we obtained only suggests that our model is not fair.
